@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mnist-service"
+version = "1.0.0"
+description = "A server providing MNIST dataset using gRPC protocol"
+authors = ["Chen Mishali"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+
+deeplake = "^3.8.9"
+grpcio = "^1.59.3"
+grpcio-tools = "^1.59.3"
+#numpy = "^1.26.2"
+#Pillow = "^10.1.0"
+#tensorflow = "^2.15.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

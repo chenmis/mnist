@@ -1,0 +1,8 @@
+deeplake~=3.8.9
+grpcio~=1.59.3
+grpcio-tools~=1.59.3
+numpy~=1.26.2
+Pillow~=10.1.0
+tensorflow~=2.15.0
+pytest
+pytest-env

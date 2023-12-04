@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  client:
+    image: mnist_client
+    build: ../client
+    command:
+      - /code/client_entrypoint.py
+      - --command
+      - train
+    environment:
+      - GRPC_ADDRESS=mnist_service
+      - GRPC_PORT=50051
+    external_links:
+      - compose-server-1:mnist_service
+    networks:
+      - mnist
+
+networks:
+  mnist:
+    name: mnist_net
+    external: true

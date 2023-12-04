@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  server:
+    image: mnist_service
+    build: ../mnist_service
+    environment:
+      - GRPC_PORT=50051
+      - DATASET_SOURCE=deeplake
+    ports:
+      - "50051:50051"
+    networks:
+      - mnist
+
+networks:
+  mnist:
+    name: mnist_net
+    external: true
