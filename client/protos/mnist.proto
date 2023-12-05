@@ -10,7 +10,6 @@ service MnistService {
 
 // The request message containing user information.
 message StreamRequest {
-  int32 batch_size = 1;
 }
 
 // The response message containing one MNIST sample.

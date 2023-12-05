@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import contextlib
+import json
 import logging
 import os
 import typing
@@ -10,18 +11,35 @@ import grpc
 import commands
 import grpc_clients
 
+_logger = logging.getLogger(name=__name__)
+
+
+grpc_client_config = json.dumps({
+        "methodConfig": [{
+            "name": [{}],
+            "retryPolicy": {
+                "maxAttempts": 5,
+                "initialBackoff": "0.1s",
+                "maxBackoff": "10s",
+                "backoffMultiplier": 2,
+                "retryableStatusCodes": ["UNAVAILABLE"],
+            },
+        }]
+    })
+
 
 @contextlib.contextmanager
-def _grpc_client(logger: logging.Logger) -> typing.ContextManager[grpc_clients.MnistGrpcClient]:
+def _grpc_client() -> typing.ContextManager[grpc_clients.MnistGrpcClient]:
     try:
         address = os.getenv("GRPC_ADDRESS", "localhost")
         port = os.getenv("GRPC_PORT", "50051")
         target = f"{address}:{port}"
-        logger.debug(f"Attempting to connect to gRPC server at {target}.")
-        with grpc.insecure_channel(target=target) as channel:
+
+        _logger.info(f"Attempting to connect to gRPC server at {target}.")
+        with grpc.insecure_channel(target=target, options=(("grpc.service_config", grpc_client_config),), ) as channel:
             yield grpc_clients.MnistGrpcClient(channel=channel)
     except grpc.RpcError as e:
-        logger.error(f"gRPC error occurred while connecting to server: {e}")
+        _logger.error(f"gRPC error occurred while connecting to server: {e}")
         raise
 
 
@@ -46,12 +64,11 @@ def main() -> None:
     args = parse_args()
 
     # Initialize logger with the appropriate level based on the verbose flag
-    logger = logging.getLogger(name=__name__)
-    logger.level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    logger.info("Starting execution.")
+    _logger.info("Starting execution.")
     command = commands.get_command(args.command)
-    with _grpc_client(logger) as client:
+    with _grpc_client() as client:
         command.execute(client=client)
 
 

@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 import argparse
 import logging
-import os
 from concurrent import futures
 
 import grpc
 
 from grpc_servicers import MnistGrpcService
-from protos import mnist_pb2_grpc
 from utils.grpc_service_factory import GrpcServiceFactory
 
+_logger = logging.getLogger(__name__)
 
-def run_server(logger: logging.Logger) -> None:
+
+def run_server() -> None:
     try:
-        dataset_service = GrpcServiceFactory.get_grpc_server(logger)
+        dataset_service = GrpcServiceFactory.get_grpc_server()
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
         grpc_service = MnistGrpcService(dataset_service, server)
         grpc_service.run_server()
-
     except Exception:
-        logger.exception(f"gRPC error - Shutting down.")
+        _logger.exception(f"gRPC error - Shutting down.")
 
 
 def parse_args() -> argparse.Namespace:
@@ -37,9 +36,9 @@ def main() -> None:
     args = parse_args()
 
     # Logger setup
-    logger = logging.getLogger(name=__name__)
-    logger.level = logging.DEBUG if args.verbose else logging.INFO
-    run_server(logger)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
+    run_server()
 
 
 if __name__ == '__main__':

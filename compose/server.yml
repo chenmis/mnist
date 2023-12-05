@@ -6,7 +6,6 @@ services:
     build: ../mnist_service
     environment:
       - GRPC_PORT=50051
-      - DATASET_SOURCE=deeplake
     ports:
       - "50051:50051"
     networks:

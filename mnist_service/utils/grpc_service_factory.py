@@ -1,18 +1,15 @@
-import logging
 import os
+import typing
 
-from dataset_services import BaseDatasetService
-from dataset_services.deeplake_dataset_service import DeepLakeDatasetService
-from dataset_services.tensorflow_dataset_service import TensorflowDatasetService
-from enums import ServiceType
+import dataset_services
 
 
 class GrpcServiceFactory:
     @staticmethod
-    def get_grpc_server(logger: logging.Logger, service_type: ServiceType = ServiceType.deeplake.value) -> BaseDatasetService:
-        # Choose the dataset loader based on the environment variable
-        dataset_source = os.getenv("DATASET_SOURCE", service_type).lower()
-        if dataset_source == "deeplake":
-            return DeepLakeDatasetService(logger)
-        else:
-            return TensorflowDatasetService(logger)
+    def get_grpc_server(service_type: typing.Optional[dataset_services.enums.ServiceType] = None) -> dataset_services.BaseDatasetService:
+        if service_type is None:
+            # Choose the dataset loader based on the environment variable
+            service_type = dataset_services.enums.ServiceType[os.getenv("DATASET_SOURCE", dataset_services.enums.ServiceType.tensorflow)]
+
+        return dataset_services.get_service(service_type)
+

@@ -16,11 +16,12 @@ _logger = logging.getLogger(__name__)
 
 
 class MnistGrpcService(mnist_pb2_grpc.MnistServiceServicer):
-    def __init__(self, service: BaseDatasetService, server: grpc.Server):
+    def __init__(self, dataset_service: BaseDatasetService, server: grpc.Server):
         self._server = server
-        self._service = service
-        mnist_pb2_grpc.add_MnistServiceServicer_to_server(self._service, self._server)
-        _logger.info("MnistGrpcServicer initialized.")
+        self._dataset_service = dataset_service
+
+        mnist_pb2_grpc.add_MnistServiceServicer_to_server(self, server)
+        _logger.info("MnistGrpcService initialized.")
 
     def run_server(self):
         port = os.getenv("GRPC_PORT", "50051")
@@ -30,13 +31,17 @@ class MnistGrpcService(mnist_pb2_grpc.MnistServiceServicer):
         _logger.info(f"Server started at {address}.")
         self._server.wait_for_termination()
 
-    def SendMnistSamples(self, request: mnist_pb2.StreamRequest, context: grpc.ServicerContext) -> typing.Generator[mnist_pb2.Sample, None, None]:
-        _logger.info(f"Serving SendMnistSamples request with batch size: {request.batch_size}")
+    def SendMnistSamples(
+            self,
+            request: mnist_pb2.StreamRequest,
+            context: grpc.ServicerContext
+    ) -> typing.Generator[mnist_pb2.Sample, None, None]:
+        _logger.info("Serving SendMnistSamples request.")
         try:
             return (
                 mnist_pb2.Sample(image=image_bytes, label=int(label_str))
-                for image_bytes, label_str in self._service.get_samples(batch_size=request.batch_size)
+                for image_bytes, label_str in self._dataset_service.get_samples()
             )
-        except Exception as e:
+        except Exception:
             _logger.exception("Error in SendMnistSamples")
             context.abort(grpc.StatusCode.INTERNAL, "Internal error occurred.")

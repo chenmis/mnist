@@ -1,5 +1,3 @@
-import typing
-
 from commands.base_command import BaseCommand
 from commands.enums import CommandType
 from commands.train_mnist_model import MnistModelTrainer

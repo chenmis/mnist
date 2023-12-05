@@ -1,16 +1,27 @@
-# client/commands/train_mnist_model.py
 import logging
 import typing
 
+import numpy.typing
 import numpy as np
 import tensorflow as tf
 import keras
 
+from grpc_clients import mnist_client
 from commands import base_command
 from commands import enums as commands_enums
-from grpc_clients import mnist_client
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
+class PrintStatusCallback(keras.callbacks.Callback):
+    def __init__(self):
+        super().__init__()
+        self.counter = 0
+
+    def on_batch_end(self, batch, logs=None):
+        self.counter += batch
+        if self.counter % 100 == 0:
+            logger.info(f"Processed {self.counter} images - Loss: {logs['loss']}, Accuracy: {logs['accuracy']}")
 
 
 class MnistModelTrainer(base_command.BaseCommand):
@@ -20,52 +31,42 @@ class MnistModelTrainer(base_command.BaseCommand):
 
     @classmethod
     def execute(cls, client: mnist_client.MnistGrpcClient) -> None:
-        _logger.info("Starting MNIST model training.")
+        logger.info("Starting MNIST model training.")
 
         model = cls.create_model()
         model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-        _logger.info("Created and compiled a new model.")
+        logger.info("Created and compiled a new model.")
 
         try:
-            model.fit_generator(
-                generator=tf.data.Dataset.from_generator(
-                    lambda: cls._get_data_generator(client=client),
-                    output_types=(tf.uint8, tf.int64),
-                ),
+            model.fit(
+                x=cls.data_generator(client),
                 verbose=2,
+                callbacks=[PrintStatusCallback()]
             )
-            _logger.info("Model training completed successfully.")
+            logger.info("Model training completed successfully.")
         except Exception:
-            _logger.exception("Error during model training.")
+            logger.exception("Error during model training.")
             raise
 
-    @classmethod
-    def _get_data_generator(
-            cls,
+    @staticmethod
+    def data_generator(
             client: mnist_client.MnistGrpcClient,
-    ) -> typing.Generator[typing.Tuple[bytes, int], None, None]:
-        samples = client.get_mnist_samples(batch_size=10000)
-        for sample in samples:
-            yield sample.image, sample.label
+    ) -> typing.Generator[typing.Tuple[numpy.typing.NDArray, numpy.typing.NDArray], None, None]:
+        samples_generator = client.get_mnist_samples()
 
-    # @staticmethod
-    # def prepare_data(response):
-    #     images = []
-    #     labels = []
-    #     for sample in response:
-    #         images.append(sample.image)  # Directly append the raw bytes
-    #         labels.append(int(sample.label))
-    #     return np.array(images), np.array(labels)
+        for sample in samples_generator:
+            logger.debug(f"Received sample with label {sample.label}")
+            image = tf.io.decode_png(sample.image, channels=1)
+            image = tf.image.convert_image_dtype(image, tf.float32)
+            yield np.array([image]), np.array([sample.label])
 
     @staticmethod
     def create_model() -> keras.Model:
-        _logger.debug("Creating a ... model")
+        logger.debug("Creating the model.")
         model = keras.models.Sequential([
-            keras.layers.Lambda(lambda x: tf.map_fn(lambda y: tf.image.decode_png(y, channels=1), x, dtype=tf.uint8)),
-            keras.layers.Rescaling(1./255),
-            keras.layers.Flatten(input_shape=(28, 28)),
-            keras.layers.Dense(128, activation="relu"),
+            keras.layers.Flatten(input_shape=(28, 28, 1)),
+            keras.layers.Dense(128, activation='relu'),
             keras.layers.Dropout(0.2),
-            keras.layers.Dense(10, activation="softmax")
+            keras.layers.Dense(10, activation='softmax')
         ])
         return model

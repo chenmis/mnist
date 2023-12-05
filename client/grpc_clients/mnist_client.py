@@ -16,8 +16,8 @@ class MnistGrpcClient:
 
         self._grpc_service = mnist_pb2_grpc.MnistServiceStub(channel)
 
-    def get_mnist_samples(self, batch_size: int) -> typing.Generator[mnist_pb2.Sample, None, None]:
-        _logger.debug(f"Requesting {batch_size} MNIST samples from server.")
-        return self._grpc_service.SendMnistSamples(request=mnist_pb2.StreamRequest(batch_size=batch_size))
+    def get_mnist_samples(self) -> typing.Generator[mnist_pb2.Sample, None, None]:
+        _logger.debug("Requesting MNIST samples from server.")
+        return self._grpc_service.SendMnistSamples(request=mnist_pb2.StreamRequest())
 
 
