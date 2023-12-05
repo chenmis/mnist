@@ -1,1 +1,0 @@
-## MINST gRPC Client
