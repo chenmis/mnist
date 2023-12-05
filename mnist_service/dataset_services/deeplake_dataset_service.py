@@ -3,7 +3,7 @@ import typing
 
 import deeplake
 
-from dataset_services import enums as dataset_services_enums
+from utils import ServiceType
 from dataset_services.base_dataset_service import BaseDatasetService
 
 _logger = logging.getLogger(__name__)
@@ -14,8 +14,8 @@ class DeepLakeDatasetService(BaseDatasetService):
         self.dataset_url = "hub://activeloop/mnist-train"
 
     @classmethod
-    def get_service_type(cls) -> dataset_services_enums.ServiceType:
-        return dataset_services_enums.ServiceType.deeplake
+    def get_service_type(cls) -> ServiceType:
+        return ServiceType.deeplake
 
     def get_samples(self) -> typing.Generator[typing.Tuple[bytes, str], None, None]:
         try:

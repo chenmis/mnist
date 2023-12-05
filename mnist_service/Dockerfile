@@ -1,15 +1,9 @@
 FROM python:3.9-slim-bullseye as build
 
-# Install Poetry (and virtualenv)
-# RUN pip install --no-input poetry==1.1.15
+# Install virtualenv
 RUN pip install --no-input virtualenv
 
 WORKDIR /code
-
-# Copy poetry files and install libraries from the lock file (within a venv, so we can copy them to the next stage).
-# COPY pyproject.toml poetry.lock /code/
-# RUN poetry config virtualenvs.in-project true
-# RUN poetry install -v --no-interaction
 
 COPY requirements.txt /code/
 RUN python3 -m venv .venv

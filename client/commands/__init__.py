@@ -1,5 +1,5 @@
 from commands.base_command import BaseCommand
-from commands.enums import CommandType
+from utils.enums import CommandType
 from commands.train_mnist_model import MnistModelTrainer
 
 _command_type_to_command_class_mapping = {

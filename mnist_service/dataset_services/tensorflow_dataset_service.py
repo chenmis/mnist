@@ -5,7 +5,7 @@ import keras
 import numpy as np
 import tensorflow as tf
 
-from dataset_services import enums as dataset_services_enums
+from utils import enums as dataset_services_enums
 from dataset_services.base_dataset_service import BaseDatasetService
 
 _logger = logging.getLogger(__name__)
@@ -22,11 +22,13 @@ class TensorflowDatasetService(BaseDatasetService):
     def get_samples(self) -> typing.Generator[typing.Tuple[bytes, str], None, None]:
         try:
             (train_images, train_labels), _ = keras.datasets.mnist.load_data()
+            # best practice for nural network, normalize each pixel
             train_images = train_images.astype(np.float32) / 255.0
 
             for idx, (image, label) in enumerate(zip(train_images, train_labels)):
+                # for testing purpose
                 if idx % 100 == 0:
-                    _logger.info("send %s samples so far.", idx)
+                    _logger.debug("send %s samples so far.", idx)
                 image_bytes = self._get_image_bytes(image)
                 _logger.debug(f"Sending sample image with label {label}")
                 yield image_bytes, str(label)

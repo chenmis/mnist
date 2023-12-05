@@ -13,7 +13,7 @@ class TestMnistGrpcClient(unittest.TestCase):
     def test_get_mnist_samples_successful_response(self, mock_stub: mock.MagicMock) -> None:
         # Arrange
         mock_channel = mock.Mock()
-        mock_response = (mnist_pb2.Sample(image=b'some_image_data', label=1))
+        mock_response = iter([mnist_pb2.Sample(image=b'some_image_data', label=1)])
         mock_stub.return_value.SendMnistSamples.return_value = mock_response
         client = grpc_clients.MnistGrpcClient(mock_channel)
 
@@ -40,10 +40,10 @@ class TestMnistGrpcClient(unittest.TestCase):
     def test_get_mnist_samples_parses_data_correctly(self, mock_stub: mock.MagicMock) -> None:
         # Arrange
         mock_channel = mock.Mock()
-        mock_response = [
+        mock_response = iter([
             mnist_pb2.Sample(image=b'image_data_1', label=1),
             mnist_pb2.Sample(image=b'image_data_2', label=2),
-        ]
+        ])
         mock_stub.return_value.SendMnistSamples.return_value = mock_response
         client = grpc_clients.MnistGrpcClient(mock_channel)
 

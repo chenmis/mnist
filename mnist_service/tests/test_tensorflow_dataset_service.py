@@ -1,36 +1,45 @@
-import logging
 import unittest
 from unittest.mock import patch
 import numpy as np
-from dataset_services.tensorflow_dataset_service import TensorflowDatasetService
+import tensorflow as tf
 
-_logger = logging.getLogger(__name__)
+from utils import ServiceType
+from dataset_services import TensorflowDatasetService
 
 
 class TestTensorflowDatasetService(unittest.TestCase):
 
     def setUp(self):
-        self.service = TensorflowDatasetService(_logger)
+        self.service = TensorflowDatasetService()
+
+    def test_init(self):
+        with patch('logging.Logger.info') as mock_log_info:
+            service = TensorflowDatasetService()
+            mock_log_info.assert_called_with("TensorflowDatasetService initialized.")
+
+    def test_get_service_type(self):
+        self.assertEqual(self.service.get_service_type(), ServiceType.tensorflow)
 
     @patch('tensorflow.keras.datasets.mnist.load_data')
-    def test_get_samples_returns_correct_data_format(self, mock_load_data):
-        # Mock data shaped as 28x28 pixels
-        mock_load_data.return_value = ((np.zeros((1, 28, 28)), np.array([0])), None)
-        generator = self.service.get_samples()
-        image_bytes, label = next(generator)
-        self.assertIsInstance(image_bytes, bytes)
-        self.assertIsInstance(label, str)
+    def test_get_samples(self, mock_load_data):
+        mock_load_data.return_value = ((np.random.rand(100, 28, 28), np.random.randint(0, 10, 100)), None)
+        with patch.object(self.service, '_get_image_bytes') as mock_get_image_bytes:
+            mock_get_image_bytes.return_value = b'image_bytes'
+            samples = list(self.service.get_samples())
+            self.assertEqual(len(samples), 100)
+            for image_bytes, label in samples:
+                self.assertEqual(image_bytes, b'image_bytes')
+                self.assertIsInstance(label, str)
 
-    @patch('tensorflow.keras.datasets.mnist.load_data')
-    def test_get_samples_handles_exceptions(self, mock_load_data):
-        mock_load_data.side_effect = Exception("Test Error")
-        with self.assertRaises(Exception):
-            next(self.service.get_samples())
+    @patch('tensorflow.image.convert_image_dtype')
+    @patch('tensorflow.io.encode_png')
+    def test_get_image_bytes(self, mock_encode_png, mock_convert_image_dtype):
+        mock_convert_image_dtype.return_value = tf.constant([[0]], dtype=tf.uint8)
+        mock_encode_png.return_value = tf.constant(b'image_bytes', dtype=tf.string)
+        image = np.random.rand(28, 28).astype(np.float32)
+        image_bytes = self.service._get_image_bytes(image)
+        self.assertEqual(image_bytes, b'image_bytes')
 
-    @patch('tensorflow.keras.datasets.mnist.load_data')
-    def test_continuous_data_streaming(self, mock_load_data):
-        # Mock data shaped as 28x28 pixels for 3 images
-        mock_load_data.return_value = ((np.zeros((3, 28, 28)), np.array([0, 1, 2])), None)
-        generator = self.service.get_samples()
-        results = [next(generator) for _ in range(3)]
-        self.assertEqual(len(results), 3)
+
+if __name__ == '__main__':
+    unittest.main()

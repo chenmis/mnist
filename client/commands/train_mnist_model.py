@@ -8,7 +8,7 @@ import keras
 
 from grpc_clients import mnist_client
 from commands import base_command
-from commands import enums as commands_enums
+from utils import CommandType
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +26,8 @@ class PrintStatusCallback(keras.callbacks.Callback):
 
 class MnistModelTrainer(base_command.BaseCommand):
     @classmethod
-    def get_command_type(cls) -> commands_enums.CommandType:
-        return commands_enums.CommandType.train
+    def get_command_type(cls) -> CommandType:
+        return CommandType.train
 
     @classmethod
     def execute(cls, client: mnist_client.MnistGrpcClient) -> None:

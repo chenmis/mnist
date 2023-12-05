@@ -1,7 +1,7 @@
 import abc
 import typing
 
-from dataset_services import enums as dataset_services_enums
+from utils import enums as dataset_services_enums
 
 
 class BaseDatasetService(abc.ABC):

@@ -1,13 +1,13 @@
 import abc
 
 from grpc_clients import mnist_client
-from commands import enums as commands_enums
+from utils import CommandType
 
 
 class BaseCommand(abc.ABC):
     @classmethod
     @abc.abstractmethod
-    def get_command_type(cls) -> commands_enums.CommandType:
+    def get_command_type(cls) -> CommandType:
         pass
 
     @classmethod

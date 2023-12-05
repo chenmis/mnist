@@ -1,15 +1,12 @@
 import logging
 import os
 import typing
-from concurrent import futures
 
 import grpc
 
-import dataset_services
 from dataset_services import BaseDatasetService
 from protos import mnist_pb2
 from protos import mnist_pb2_grpc
-from utils.grpc_service_factory import GrpcServiceFactory
 
 
 _logger = logging.getLogger(__name__)
@@ -45,3 +42,4 @@ class MnistGrpcService(mnist_pb2_grpc.MnistServiceServicer):
         except Exception:
             _logger.exception("Error in SendMnistSamples")
             context.abort(grpc.StatusCode.INTERNAL, "Internal error occurred.")
+            raise
