@@ -9,11 +9,10 @@ import grpc
 
 import commands
 import grpc_clients
-from utils.logger import Logger
 
 
 @contextlib.contextmanager
-def _grpc_client(logger: Logger) -> typing.ContextManager[grpc_clients.MnistGrpcClient]:
+def _grpc_client(logger: logging.Logger) -> typing.ContextManager[grpc_clients.MnistGrpcClient]:
     try:
         address = os.getenv("GRPC_ADDRESS", "localhost")
         port = os.getenv("GRPC_PORT", "50051")
@@ -47,7 +46,8 @@ def main() -> None:
     args = parse_args()
 
     # Initialize logger with the appropriate level based on the verbose flag
-    logger = Logger(name=__name__, level=logging.DEBUG if args.verbose else logging.INFO)
+    logger = logging.getLogger(name=__name__)
+    logger.level = logging.DEBUG if args.verbose else logging.INFO
 
     logger.info("Starting execution.")
     command = commands.get_command(args.command)

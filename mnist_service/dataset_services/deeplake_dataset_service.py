@@ -2,11 +2,12 @@
 
 import deeplake
 import typing
-from dataset_services.base_dataset_loader import BaseDatasetService
-from utils.logger import Logger
+from dataset_services.base_dataset_service import BaseDatasetService
+import logging
+
 
 class DeepLakeDatasetService(BaseDatasetService):
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.dataset_url = "hub://activeloop/mnist-train"
 

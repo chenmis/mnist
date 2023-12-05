@@ -4,12 +4,11 @@ import typing
 import numpy as np
 import tensorflow as tf
 
-from dataset_services import base_dataset_loader
-from utils.logger import Logger
+from dataset_services.base_dataset_service import BaseDatasetService
 
 
-class TensorflowDatasetService(base_dataset_loader.BaseDatasetService):
-    def __init__(self, logger: Logger):
+class TensorflowDatasetService(BaseDatasetService):
+    def __init__(self, logger: logging.Logger):
         self.logger = logger
         self.logger.info("TensorflowDatasetLoader initialized.")
 
