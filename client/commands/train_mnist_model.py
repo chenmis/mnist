@@ -39,7 +39,7 @@ class MnistModelTrainer(base_command.BaseCommand):
 
         try:
             model.fit(
-                x=cls.data_generator(client),
+                x=cls.get_samples_gen(client),
                 verbose=2,
                 callbacks=[PrintStatusCallback()]
             )
@@ -49,7 +49,7 @@ class MnistModelTrainer(base_command.BaseCommand):
             raise
 
     @staticmethod
-    def data_generator(
+    def get_samples_gen(
             client: mnist_client.MnistGrpcClient,
     ) -> typing.Generator[typing.Tuple[numpy.typing.NDArray, numpy.typing.NDArray], None, None]:
         samples_generator = client.get_mnist_samples()

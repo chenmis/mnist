@@ -14,4 +14,3 @@ class BaseDatasetService(abc.ABC):
     def get_samples(self) -> typing.Generator[typing.Tuple[bytes, str], None, None]:
         pass
 
-
